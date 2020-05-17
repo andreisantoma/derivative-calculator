@@ -17,28 +17,41 @@ std::ostream& operator<<(std::ostream& os, const SYMEXPR& e)
 		os << *(e.lhs) << "+" << *(e.rhs);
 		return os;
 	case Sub:
-		os << "(" << *(e.lhs) << ")"
+		os << *(e.lhs)
 			<< "-"
 			<< "(" << *(e.rhs) << ")";
 		return os;
 	case Mul:
 	{
-		// Special cases when lhs or rhs is a constant s-expr with value -1
-		if ((*(e.lhs)).val == -1)
+		operation lhs_op = (*(e.lhs)).op;
+		operation rhs_op = (*(e.rhs)).op;
+
+		if (lhs_op == Add || lhs_op == Sub || lhs_op == Exp)
 		{
-			os << "-"
-				<< "(" << *(e.rhs) << ")";
-			return os;
+			// Only use brackets if lhs expr is an addition, subtraction or exponentiation
+			os << "(" << *(e.lhs) << ")" << "*";
 		}
-		if ((*(e.rhs)).val == -1)
+		else if (lhs_op == Const && (*(e.lhs)).val == -1)
 		{
-			os << "-"
-				<< "(" << *(e.lhs) << ")";
-			return os;
+			// If lhs of multiplication is a constant -1, just print out "-"
+			// without any multiplication symbol
+			os << "-";
 		}
-		os << "(" << *(e.lhs) << ")"
-			<< "*"
-			<< "(" << *(e.rhs) << ")";
+		else
+		{
+			os << *(e.lhs) << "*";
+		}
+
+		if (rhs_op == Add || rhs_op == Sub)
+		{
+			// Only use brackets if lhs expr is an addition or subtraction
+			os << "(" << *(e.rhs) << ")";
+		}
+		else
+		{
+			os << *(e.rhs);
+		}
+
 		return os;
 	}		
 	case Div:
@@ -118,6 +131,8 @@ std::shared_ptr<SYMEXPR> derivative(std::shared_ptr<SYMEXPR> e)
 	switch (e->op)
 	{
 	case Const:
+		return std::make_shared<SYMEXPR>(0);
+	case E:
 		return std::make_shared<SYMEXPR>(0);
 	case Var:
 		return std::make_shared<SYMEXPR>(1);
@@ -221,6 +236,24 @@ std::shared_ptr<SYMEXPR> simplify(std::shared_ptr<SYMEXPR> e)
 			{
 				return e->lhs;
 			}
+		}
+
+		if ((e->rhs->op == Mul || e->rhs->op == Div) && e->rhs->lhs->op == Const && e->rhs->lhs->val < 0)
+		{
+			// E1 + ((-c) * E2)) = E1 - (c * E2)
+
+			if (e->rhs->lhs->val == -1)
+			{
+				// If -c = -1, then c = 1, resulting in a multiplication by 1, which is redundant
+				// Remove expr containing the constant 1 and push rhs of multiplication up one level
+				e->rhs = e->rhs->rhs;
+			}
+			else
+			{
+				e->rhs->lhs->val *= -1;
+			}
+
+			return std::make_shared<SYMEXPR>(Sub, e->lhs, e->rhs);
 		}
 
 		return e;		

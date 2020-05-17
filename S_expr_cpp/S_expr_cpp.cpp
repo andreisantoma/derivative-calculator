@@ -20,47 +20,41 @@ int main()
 	//		Sin,
 	//		std::make_shared<SYMEXPR>(
 	//			Add,
-	//			std::make_shared<SYMEXPR>(),
+	//			X,
 	//			std::make_shared<SYMEXPR>(3))
 	//		)
-	//);
-	//
-	//std::shared_ptr<SYMEXPR> b = derivative(a);
-	//simplify(b);
-	//std::cout << *b << std::endl;
-
-	std::shared_ptr<SYMEXPR> a = std::make_shared<SYMEXPR>(
-		Div,
-		std::make_shared<SYMEXPR>(
-			Add,
-			X,
-			std::make_shared<SYMEXPR>(3)
-			),
-		std::make_shared<SYMEXPR>(
-			Add,
-			std::make_shared<SYMEXPR>(
-				Mul,
-				X,
-				std::make_shared<SYMEXPR>(
-					Cos,
-					X
-					)
-				),
-			std::make_shared<SYMEXPR>(5)
-			)
-		);
+	//);	
 
 	//std::shared_ptr<SYMEXPR> a = std::make_shared<SYMEXPR>(
-	//	Log,
-	//	std::make_shared<SYMEXPR>(Exp, E, X)
-	//);
+	//	Div,
+	//	std::make_shared<SYMEXPR>(
+	//		Add,
+	//		X,
+	//		std::make_shared<SYMEXPR>(3)
+	//		),
+	//	std::make_shared<SYMEXPR>(
+	//		Add,
+	//		std::make_shared<SYMEXPR>(
+	//			Mul,
+	//			X,
+	//			std::make_shared<SYMEXPR>(
+	//				Cos,
+	//				X
+	//				)
+	//			),
+	//		std::make_shared<SYMEXPR>(5)
+	//		)
+	//	);
+
+	std::shared_ptr<SYMEXPR> a = std::make_shared<SYMEXPR>(Exp, E, std::make_shared<SYMEXPR>(Sin, X));
 
 
 	std::shared_ptr<SYMEXPR> b = derivative(a);
+	std::shared_ptr<SYMEXPR> s;
 
 	std::cout << "derivative of " << *a << std::endl << "is " << *b; 
 
-	simplify(b);
+	b = simplify(b);
 
 	std::cout << std::endl << *b;
 
