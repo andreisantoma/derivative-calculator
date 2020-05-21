@@ -1,265 +1,352 @@
 #include "symexpr.h"
 
-std::ostream& operator<<(std::ostream& os, const SYMEXPR& e)
+PSYMEXPR new_symexpr(short int op, PSYMEXPR lhs, PSYMEXPR rhs, int key)
 {
-	switch (e.op)
-	{
-	case Const:
-		os << e.val;
-		return os;
-	case Var:
-		os << "x";
-		return os;
-	case E:
-		os << "e";
-		return os;
-	case Add:
-		os << *(e.lhs) << "+" << *(e.rhs);
-		return os;
-	case Sub:
-		os << *(e.lhs)
-			<< "-"
-			<< "(" << *(e.rhs) << ")";
-		return os;
-	case Mul:
-	{
-		operation lhs_op = (*(e.lhs)).op;
-		operation rhs_op = (*(e.rhs)).op;
+	PSYMEXPR s = (PSYMEXPR)malloc(sizeof(SYMEXPR));
+	s->op = op;
+	s->lhs = lhs;
+	s->rhs = rhs;
+	s->key = key;
 
-		if (lhs_op == Add || lhs_op == Sub || lhs_op == Exp)
+	return s;
+}
+
+void print_symexpr(PSYMEXPR e)
+{
+	if (e == NULL)
+	{
+		return;
+	}
+	switch (e->op)
+	{
+	case CONST:
+		printf("%d", e->key);
+		return;
+	case VAR:
+		printf("x");
+		return;
+	case E:
+		printf("e");
+		return;
+	case ADD:
+		print_symexpr(e->lhs);
+		printf("+");
+		print_symexpr(e->rhs);
+		return;
+	case SUB:
+		print_symexpr(e->lhs);
+		printf("-(");
+		print_symexpr(e->rhs);
+		printf(")");
+		return;
+	case MUL:
+	{
+		short int lhs_op = e->lhs->op;
+		short int rhs_op = e->rhs->op;
+
+		if (lhs_op == ADD || lhs_op == SUB || lhs_op == EXP)
 		{
 			// Only use brackets if lhs expr is an addition, subtraction or exponentiation
-			os << "(" << *(e.lhs) << ")" << "*";
+			printf("(");
+			print_symexpr(e->lhs);
+			printf(")*");
 		}
-		else if (lhs_op == Const && (*(e.lhs)).val == -1)
+		else if (lhs_op == CONST && e->lhs->key == -1)
 		{
-			// If lhs of multiplication is a constant -1, just print out "-"
+			// If lhs of multiplication is a constant -1, just print "-"
 			// without any multiplication symbol
-			os << "-";
+			printf("-");
 		}
 		else
 		{
-			os << *(e.lhs) << "*";
+			print_symexpr(e->lhs);
+			printf("*");
 		}
 
-		if (rhs_op == Add || rhs_op == Sub)
+		if (rhs_op == ADD || rhs_op == SUB)
 		{
 			// Only use brackets if lhs expr is an addition or subtraction
-			os << "(" << *(e.rhs) << ")";
+			printf("(");
+			print_symexpr(e->rhs);
+			printf(")");			
 		}
 		else
 		{
-			os << *(e.rhs);
+			print_symexpr(e->rhs);
 		}
-
-		return os;
+		return;
 	}		
-	case Div:
-		os << "(" << *(e.lhs) << ")"
-			<< "/"
-			<< "(" << *(e.rhs) << ")";
-		return os;
-	case Sin:
-		os << "sin(" << *(e.lhs) << ")";
-		return os;
-	case Cos:
-		os << "cos(" << *(e.lhs) << ")";
-		return os;
-	case Tan:
-		os << "tan(" << *(e.lhs) << ")";
-		return os;
-	case Cotan:
-		os << "cotan(" << *(e.lhs) << ")";
-		return os;
-	case Log:
-		os << "log(" << *(e.lhs) << ")";
-		return os;
-	case Exp:
-		os << *(e.lhs) << "**"
-			<< "(" << *(e.rhs) << ")";
-		return os;
+	case DIV:
+		printf("(");
+		print_symexpr(e->lhs);
+		printf(")/(");
+		print_symexpr(e->rhs);
+		printf(")");
+		return;
+	case SIN:
+		printf("sin(");
+		print_symexpr(e->lhs);
+		printf(")");
+		return;
+	case COS:
+		printf("cos(");
+		print_symexpr(e->lhs);
+		printf(")");
+		return;
+	case TAN:
+		printf("tan(");
+		print_symexpr(e->lhs);
+		printf(")");
+		return;
+	case COTAN:
+		printf("cotan(");
+		print_symexpr(e->lhs);
+		printf(")");
+		return;
+	case LOG:
+		printf("log(");
+		print_symexpr(e->lhs);
+		printf(")");
+		return;
+	case EXP:
+		print_symexpr(e->lhs);
+		printf("**(");
+		print_symexpr(e->rhs);
+		printf(")");
+		return;
 	default:
-		return os;
+		return;		
 	}
 }
 
-bool operator==(const SYMEXPR& lhs, const SYMEXPR& rhs)
+void deallocate_symexpr(PSYMEXPR e)
 {
-	if (&lhs == nullptr)
+	if (e == NULL)
 	{
-		if (&rhs == nullptr)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-	if (&rhs == nullptr)
-	{
-		return false;
+		return;
 	}
 
-	if (lhs.op != rhs.op)
-	{
-		return false;
-	}
-
-	if (lhs.op == Const && rhs.op == Const)
-	{
-		if (lhs.val == rhs.val)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	if ((lhs.op == E && rhs.op == E) || (lhs.op == Var && rhs.op == Var))
-	{
-		return true;
-	}
-
-	return (*(lhs.lhs) == *(rhs.lhs)) && (*(lhs.rhs) == *(rhs.rhs));
+	deallocate_symexpr(e->lhs);
+	deallocate_symexpr(e->rhs);
+	free(e);
+	return;
 }
 
-std::shared_ptr<SYMEXPR> derivative(std::shared_ptr<SYMEXPR> e)
+PSYMEXPR copy_symexpr(PSYMEXPR e)
+{
+	if (e == NULL)
+	{
+		return NULL;
+	}
+
+	PSYMEXPR s = new_symexpr(e->op, NULL, NULL, e->key);
+	s->lhs = copy_symexpr(e->lhs);
+	s->rhs = copy_symexpr(e->rhs);
+	return s;
+}
+
+PSYMEXPR derivative(PSYMEXPR e)
 {
 	switch (e->op)
 	{
-	case Const:
-		return std::make_shared<SYMEXPR>(0);
+	case CONST:
 	case E:
-		return std::make_shared<SYMEXPR>(0);
-	case Var:
-		return std::make_shared<SYMEXPR>(1);
-	case Add:
-		return std::make_shared<SYMEXPR>(Add, derivative(e->lhs), derivative(e->rhs));
-	case Sub:
-		return std::make_shared<SYMEXPR>(Sub, derivative(e->lhs), derivative(e->rhs));
-	case Mul:
-		return std::make_shared<SYMEXPR>(
-			Add,
-			std::make_shared<SYMEXPR>(Mul, derivative(e->lhs), e->rhs),
-			std::make_shared<SYMEXPR>(Mul, e->lhs, derivative(e->rhs)));
-	case Div:
-		// (f/g)' = (fg' - f'g)/(g**2)
-		// e->lhs = numerator = f
-		// e->rhs = denominator = g
-		return std::make_shared<SYMEXPR>(
-			Div,
-			std::make_shared<SYMEXPR>(
-				Sub,
-				std::make_shared<SYMEXPR>(Mul, derivative(e->lhs), e->rhs),
-				std::make_shared<SYMEXPR>(Mul, e->lhs, derivative(e->rhs))
-				),
-			std::make_shared<SYMEXPR>(Mul, e->rhs, e->rhs)
-			);
-	case Sin:
+		return new_symexpr(CONST, NULL, NULL, 0);
+	case VAR:
+		return new_symexpr(CONST, NULL, NULL, 1);
+	case ADD:
+		return new_symexpr(ADD, derivative(e->lhs), derivative(e->rhs), 0);
+	case SUB:
+		return new_symexpr(SUB, derivative(e->lhs), derivative(e->rhs), 0);
+	case MUL:
+		// (fg)' = f'g + fg'
+		// e->lhs = f
+		// e->rhs = g
+		return new_symexpr(
+			ADD,
+			new_symexpr(MUL, derivative(e->lhs), copy_symexpr(e->rhs), 0),
+			new_symexpr(MUL, copy_symexpr(e->lhs), derivative(e->rhs), 0),
+			0
+		);
+	case DIV:
+		// (f/g)' = (f'g - fg')/(g**2)
+		// e->lhs = f
+		// e->rhs = g
+		return new_symexpr(
+			DIV,
+			new_symexpr(
+				SUB,
+				new_symexpr(MUL, derivative(e->lhs), copy_symexpr(e->rhs), 0),
+				new_symexpr(MUL, copy_symexpr(e->lhs), derivative(e->rhs), 0),
+				0),
+			new_symexpr(MUL, copy_symexpr(e->rhs), copy_symexpr(e->rhs), 0),
+			0
+		);
+	case SIN:
 		// (sin(f))' = cos(f) * f'
 		// e->lhs = f
-		return std::make_shared<SYMEXPR>(
-			Mul,
-			std::make_shared<SYMEXPR>(Cos, e->lhs),
-			derivative(e->lhs));
-	case Cos:
+		return new_symexpr(MUL, new_symexpr(COS, copy_symexpr(e->lhs), NULL, 0), derivative(e->lhs), 0);
+	case COS:
 		// (cos(f))' = (-1 * sin(f)) * f'
 		// e->lhs = f
-		return std::make_shared<SYMEXPR>(
-			Mul,
-			std::make_shared<SYMEXPR>(
-				Mul,
-				std::make_shared<SYMEXPR>(-1),
-				std::make_shared<SYMEXPR>(Sin, e->lhs)
-				),
-			derivative(e->lhs)
-			);
-	case Log:
+		return new_symexpr(
+			MUL,
+			new_symexpr(CONST, NULL, NULL, -1),
+			new_symexpr(MUL, new_symexpr(COS, copy_symexpr(e->lhs), NULL, 0), derivative(e->lhs), 0),
+			0
+		);
+	case LOG:
 		// (log(f))' = f'/f
 		// e->lhs = f
-		return std::make_shared<SYMEXPR>(
-			Div,
+		return new_symexpr(
+			DIV,
 			derivative(e->lhs),
-			e->lhs
-			);
-	case Exp:
+			copy_symexpr(e->lhs),
+			0
+		);
+	case EXP:
 		// (a ** f)' = ((a ** f) * f') * log(a)
 		// e->lhs = a
 		// e->rhs = f
-		return std::make_shared<SYMEXPR>(
-			Mul,
-			std::make_shared<SYMEXPR>(
-				Mul,
-				std::make_shared<SYMEXPR>(Exp, e->lhs, e->rhs),
-				derivative(e->rhs)
-				),
-			std::make_shared<SYMEXPR>(Log, e->lhs)
-			);
+		return new_symexpr(
+			MUL,
+			new_symexpr(EXP, copy_symexpr(e->lhs), copy_symexpr(e->rhs), 0),
+			new_symexpr(LOG, copy_symexpr(e->lhs), NULL, 0),
+			0
+		);
 	default:
-		return nullptr;
+		return NULL;
 	}
 }
 
-std::shared_ptr<SYMEXPR> simplify(std::shared_ptr<SYMEXPR> e)
+//bool operator==(const SYMEXPR& lhs, const SYMEXPR& rhs)
+//{
+//	if (&lhs == nullptr)
+//	{
+//		if (&rhs == nullptr)
+//		{
+//			return true;
+//		}
+//		else
+//		{
+//			return false;
+//		}
+//	}
+//	if (&rhs == nullptr)
+//	{
+//		return false;
+//	}
+//
+//	if (lhs.op != rhs.op)
+//	{
+//		return false;
+//	}
+//
+//	if (lhs.op == Const && rhs.op == Const)
+//	{
+//		if (lhs.val == rhs.val)
+//		{
+//			return true;
+//		}
+//		else
+//		{
+//			return false;
+//		}
+//	}
+//
+//	if ((lhs.op == E && rhs.op == E) || (lhs.op == Var && rhs.op == Var))
+//	{
+//		return true;
+//	}
+//
+//	return (*(lhs.lhs) == *(rhs.lhs)) && (*(lhs.rhs) == *(rhs.rhs));
+//}
+//
+
+
+PSYMEXPR simplify(PSYMEXPR e)
 {
-	if (e->lhs)
+	if (e == NULL)
 	{
-		e->lhs = simplify(e->lhs);
+		return NULL;
 	}
-	if (e->rhs)
-	{
-		e->rhs = simplify(e->rhs);
-	}
+	//if (e->lhs)
+	//{
+	//	e->lhs = simplify(e->lhs);
+	//}
+	//if (e->rhs)
+	//{
+	//	e->rhs = simplify(e->rhs);
+	//}
+	e->lhs = simplify(e->lhs);
+	e->rhs = simplify(e->rhs);
 
 	switch (e->op)
 	{
-	case Add:
+	case ADD:
 	{
-		if (e->lhs->op == Const)
+		if (e->lhs->op == CONST)
 		{
-			if (e->lhs->val == 0)
+			if (e->lhs->key == 0)
 			{
+				// Clean up node containing 0 and return the other one
+				deallocate_symexpr(e->lhs);
 				return e->rhs;
 			}
-			if (e->rhs->op == Const)
+			if (e->rhs->op == CONST)
 			{
-				return std::make_shared<SYMEXPR>(e->lhs->val + e->rhs->val);
-			}
-		}
+				// Both lhs and rhs are constants
+				// add their values up in one node and deallocate the other one
+				e->lhs->key += e->rhs->key;
+				deallocate_symexpr(e->rhs);
 
-		if (e->rhs->op == Const)
-		{
-			if (e->rhs->val == 0)
-			{
+				// Return the remanining node
 				return e->lhs;
 			}
 		}
 
-		if ((e->rhs->op == Mul || e->rhs->op == Div) && e->rhs->lhs->op == Const && e->rhs->lhs->val < 0)
+		if (e->rhs->op == CONST)
+		{
+			if (e->rhs->key == 0)
+			{
+				// Clean up node containing 0 and return the other one
+				deallocate_symexpr(e->rhs);
+				return e->lhs;
+			}
+		}
+
+		if ((e->rhs->op == MUL || e->rhs->op == DIV) && e->rhs->lhs->op == CONST && e->rhs->lhs->key < 0)
 		{
 			// E1 + ((-c) * E2)) = E1 - (c * E2)
+			// Change expression type from addition to subtraction
+			e->op = SUB;
 
-			if (e->rhs->lhs->val == -1)
+			if (e->rhs->lhs->key == -1)
 			{
 				// If -c = -1, then c = 1, resulting in a multiplication by 1, which is redundant
-				// Remove expr containing the constant 1 and push rhs of multiplication up one level
+				// Remove expr containing the constant -1 and push rhs of multiplication up one level
+				// E1 + ((-1) * E2)) = E1 - E2
+
+				PSYMEXPR aux = e->rhs; // Multiplication node containing (-1) * E2
 				e->rhs = e->rhs->rhs;
+
+				// Deallocate the multiplication node
+				// Make sure its rhs is set to NULL, otherwise E2 would be deallocated
+				aux->rhs = NULL;
+				deallocate_symexpr(aux);
 			}
 			else
 			{
-				e->rhs->lhs->val *= -1;
-			}
-
-			return std::make_shared<SYMEXPR>(Sub, e->lhs, e->rhs);
+				// Change sign of constant
+				e->rhs->lhs->key *= -1;
+			}			
 		}
 
 		return e;		
-	}
-	case Sub:
+	}	
+	case SUB:
 	{
+		// START WORKING FROM HERE
 		if (e->lhs->op == Const)
 		{
 			if (e->lhs->val == 0)

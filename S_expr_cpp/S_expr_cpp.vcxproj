@@ -155,6 +155,7 @@
     <ClCompile Include="S_expr_cpp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="macros.h" />
     <ClInclude Include="symexpr.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -6,57 +6,24 @@
 #include <iostream>
 #include "symexpr.h"
 
-#define X std::make_shared<SYMEXPR>(Var)
-#define E std::make_shared<SYMEXPR>(E)
 
 
 int main()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	//std::shared_ptr<SYMEXPR> a = std::make_shared<SYMEXPR>(
-	//	Sin,
-	//	std::make_shared<SYMEXPR>(
-	//		Sin,
-	//		std::make_shared<SYMEXPR>(
-	//			Add,
-	//			X,
-	//			std::make_shared<SYMEXPR>(3))
-	//		)
-	//);	
+	PSYMEXPR a = new_symexpr(
+		SIN,
+		new_symexpr(VAR, NULL, NULL, 0),
+		NULL,
+		0);
 
-	//std::shared_ptr<SYMEXPR> a = std::make_shared<SYMEXPR>(
-	//	Div,
-	//	std::make_shared<SYMEXPR>(
-	//		Add,
-	//		X,
-	//		std::make_shared<SYMEXPR>(3)
-	//		),
-	//	std::make_shared<SYMEXPR>(
-	//		Add,
-	//		std::make_shared<SYMEXPR>(
-	//			Mul,
-	//			X,
-	//			std::make_shared<SYMEXPR>(
-	//				Cos,
-	//				X
-	//				)
-	//			),
-	//		std::make_shared<SYMEXPR>(5)
-	//		)
-	//	);
+	PSYMEXPR b = derivative(a);
 
-	std::shared_ptr<SYMEXPR> a = std::make_shared<SYMEXPR>(Exp, E, std::make_shared<SYMEXPR>(Sin, X));
-
-
-	std::shared_ptr<SYMEXPR> b = derivative(a);
-	std::shared_ptr<SYMEXPR> s;
-
-	std::cout << "derivative of " << *a << std::endl << "is " << *b; 
-
-	b = simplify(b);
-
-	std::cout << std::endl << *b;
-
+	print_symexpr(a);
+	printf("\n");
+	print_symexpr(b);
+	deallocate_symexpr(a);
+	deallocate_symexpr(b);
 	return 0;
 }
