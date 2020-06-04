@@ -7,6 +7,6 @@ Clone repository and run ```make``` command from terminal. ```flex``` and ```bis
 
 ## To-dos:
 - [ ] add --help
-- [ ] create readme
+- [ ] update readme
 - [ ] add examples
 - [ ] limitations
