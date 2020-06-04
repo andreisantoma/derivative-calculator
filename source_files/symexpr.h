@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "macros.h"
 
 typedef struct Symbolic_expression
@@ -14,16 +15,15 @@ typedef struct Symbolic_expression
 }SYMEXPR, *PSYMEXPR;
 
 PSYMEXPR new_symexpr(short int op, PSYMEXPR lhs, PSYMEXPR rhs, int key);
-PSYMEXPR copy_symexpr(PSYMEXPR e);
+PSYMEXPR copy(PSYMEXPR e);
 PSYMEXPR derivative(PSYMEXPR e);
-void print_symexpr(PSYMEXPR e);
-void deallocate_symexpr(PSYMEXPR e);
+PSYMEXPR simplify(PSYMEXPR e);
+PSYMEXPR simplify_repeatedly(PSYMEXPR e, bool verbose);
+void print(PSYMEXPR e);
+void deallocate(PSYMEXPR e);
+bool are_equal(PSYMEXPR e1, PSYMEXPR e2);
+int gcd(int a, int b);
 
-//std::ostream& operator<<(std::ostream& os, const SYMEXPR& e);
-//bool operator==(const SYMEXPR& lhs, const SYMEXPR& rhs);
-//
-//std::shared_ptr<SYMEXPR> derivative(std::shared_ptr<SYMEXPR> e);
-//std::shared_ptr<SYMEXPR> simplify(std::shared_ptr<SYMEXPR> e);
 
 #endif // !SYMEXPR_H
 

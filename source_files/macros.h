@@ -1,9 +1,6 @@
 #ifndef MACROS_H
 #define MACROS_H
 
-#define TRUE 1
-#define FALSE 0
-
 #define ADD 0
 #define SUB 1
 #define DIV 2
@@ -20,5 +17,7 @@
 #define CONST 10
 #define VAR 11
 #define E 12
+
+#define SQRT 13
 
 #endif // !MACROS_H
